@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SearchPosts from "@/components/SearchPosts";
 
 async function getPosts() {
   const res = await fetch("http://localhost:3000/api/posts", {
@@ -98,35 +99,7 @@ export default async function Home() {
               </Link>
             </div>
           ) : (
-            <div className="grid md:grid-cols-3 gap-8">
-              {posts.map((post) => (
-                <Link
-                  key={post._id}
-                  href={`/blog/${post.slug || post._id}`}
-                  className="bg-white p-6 rounded-2xl shadow hover:-translate-y-2 hover:shadow-xl transition"
-                >
-                  {post.image && (
-                    <img
-                      src={post.image}
-                      alt={post.title}
-                      className="w-full h-48 object-cover rounded-xl mb-4"
-                    />
-                  )}
-
-                  <h3 className="text-2xl font-bold mb-3">
-                    {post.title}
-                  </h3>
-
-                  <p className="text-gray-600 line-clamp-3 mb-6">
-                    {post.content}
-                  </p>
-
-                  <p className="text-sm text-gray-400">
-                    By {post.author || "Anonymous"}
-                  </p>
-                </Link>
-              ))}
-            </div>
+            <SearchPosts posts={posts} />
           )}
         </div>
       </section>

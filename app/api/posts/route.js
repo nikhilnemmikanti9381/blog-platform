@@ -40,6 +40,7 @@ export async function POST(req) {
       content: body.content,
       author: body.author || "Anonymous",
       image: body.image || "",
+      category: body.category || "General",
     });
 
     return Response.json(newPost, { status: 201 });

@@ -11,6 +11,7 @@ export default function CreatePost() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [image, setImage] = useState("");
+  const [category, setCategory] = useState("Travel");
   const [loading, setLoading] = useState(false);
 
   if (status === "loading") {
@@ -42,6 +43,7 @@ export default function CreatePost() {
         title,
         content,
         image,
+        category,
         author: session.user.email,
       }),
     });
@@ -83,6 +85,20 @@ export default function CreatePost() {
             value={image}
             onChange={(e) => setImage(e.target.value)}
           />
+
+          <select
+            className="w-full border p-3 rounded bg-white"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          >
+            <option>Travel</option>
+            <option>Tech</option>
+            <option>Food</option>
+            <option>Lifestyle</option>
+            <option>Career</option>
+            <option>Business</option>
+            <option>AI</option>
+          </select>
 
           <textarea
             placeholder="Write your blog content..."

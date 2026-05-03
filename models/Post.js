@@ -9,6 +9,10 @@ const PostSchema = new mongoose.Schema({
   content: String,
   author: String,
   image: String,
+  category: {
+    type: String,
+    default: "General",
+  },
   createdAt: { type: Date, default: Date.now },
 });
 
