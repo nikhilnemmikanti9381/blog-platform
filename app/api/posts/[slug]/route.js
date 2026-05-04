@@ -3,16 +3,31 @@ import { connectDB } from "@/lib/mongodb";
 import Post from "@/models/Post";
 import { authOptions } from "@/lib/auth";
 
+function getPostQuery(slug) {
+  const isMongoId = /^[0-9a-fA-F]{24}$/.test(slug);
+
+  return isMongoId
+    ? { $or: [{ slug }, { _id: slug }] }
+    : { slug };
+}
+
 export async function GET(req, { params }) {
   try {
     await connectDB();
 
-    const isMongoId = /^[0-9a-fA-F]{24}$/.test(params.slug);
+    const slug = params?.slug;
 
-    const post = await Post.findOne(
-      isMongoId
-        ? { $or: [{ slug: params.slug }, { _id: params.slug }] }
-        : { slug: params.slug }
+    if (!slug) {
+      return Response.json(
+        { error: "Slug is required" },
+        { status: 400 }
+      );
+    }
+
+    const post = await Post.findOneAndUpdate(
+      getPostQuery(slug),
+      { $inc: { views: 1 } },
+      { new: true }
     );
 
     if (!post) {
@@ -44,13 +59,16 @@ export async function PUT(req, { params }) {
 
     await connectDB();
 
-    const isMongoId = /^[0-9a-fA-F]{24}$/.test(params.slug);
+    const slug = params?.slug;
 
-    const post = await Post.findOne(
-      isMongoId
-        ? { $or: [{ slug: params.slug }, { _id: params.slug }] }
-        : { slug: params.slug }
-    );
+    if (!slug) {
+      return Response.json(
+        { error: "Slug is required" },
+        { status: 400 }
+      );
+    }
+
+    const post = await Post.findOne(getPostQuery(slug));
 
     if (!post) {
       return Response.json(
@@ -71,6 +89,7 @@ export async function PUT(req, { params }) {
     post.title = body.title;
     post.content = body.content;
     post.image = body.image || "";
+    post.category = body.category || post.category || "General";
 
     await post.save();
 
@@ -96,13 +115,16 @@ export async function DELETE(req, { params }) {
 
     await connectDB();
 
-    const isMongoId = /^[0-9a-fA-F]{24}$/.test(params.slug);
+    const slug = params?.slug;
 
-    const post = await Post.findOne(
-      isMongoId
-        ? { $or: [{ slug: params.slug }, { _id: params.slug }] }
-        : { slug: params.slug }
-    );
+    if (!slug) {
+      return Response.json(
+        { error: "Slug is required" },
+        { status: 400 }
+      );
+    }
+
+    const post = await Post.findOne(getPostQuery(slug));
 
     if (!post) {
       return Response.json(

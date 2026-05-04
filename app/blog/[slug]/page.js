@@ -1,4 +1,7 @@
 import CommentSection from "@/components/CommentSection";
+import RelatedPosts from "@/components/RelatedPosts";
+import BookmarkButton from "@/components/BookmarkButton";
+import ShareButtons from "@/components/ShareButtons";
 
 async function getPost(slug) {
   if (!slug) return null;
@@ -13,6 +16,11 @@ async function getPost(slug) {
   if (!res.ok) return null;
 
   return res.json();
+}
+
+function getReadingTime(content) {
+  const words = content?.trim().split(/\s+/).length || 0;
+  return Math.max(1, Math.ceil(words / 200));
 }
 
 export async function generateMetadata({ params }) {
@@ -39,7 +47,6 @@ export async function generateMetadata({ params }) {
   return {
     title: `${post.title} | Blog Platform`,
     description: cleanText,
-
     openGraph: {
       title: post.title,
       description: cleanText,
@@ -47,14 +54,12 @@ export async function generateMetadata({ params }) {
       type: "article",
       images: post.image ? [{ url: post.image }] : [],
     },
-
     twitter: {
       card: "summary_large_image",
       title: post.title,
       description: cleanText,
       images: post.image ? [post.image] : [],
     },
-
     alternates: {
       canonical: url,
     },
@@ -72,6 +77,9 @@ export default async function BlogPage({ params }) {
     );
   }
 
+  const baseUrl =
+    process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+
   return (
     <main className="bg-white text-black min-h-screen">
       {post.image && (
@@ -85,9 +93,13 @@ export default async function BlogPage({ params }) {
       )}
 
       <article className="max-w-3xl mx-auto px-6 py-12">
-        <span className="inline-block text-xs font-semibold bg-black text-white px-3 py-1 rounded-full mb-4">
-          {post.category || "General"}
-        </span>
+        <div className="flex items-center justify-between gap-4 mb-4">
+          <span className="inline-block text-xs font-semibold bg-black text-white px-3 py-1 rounded-full">
+            {post.category || "General"}
+          </span>
+
+          <BookmarkButton postId={post._id} />
+        </div>
 
         <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-6">
           {post.title}
@@ -101,11 +113,16 @@ export default async function BlogPage({ params }) {
               {post.author || "Anonymous"}
             </p>
 
-            <p className="text-xs text-gray-500">
-              {post.createdAt
-                ? new Date(post.createdAt).toLocaleDateString()
-                : "Published recently"}
-            </p>
+            <div className="text-xs text-gray-500 space-y-1">
+              <p>
+                {post.createdAt
+                  ? new Date(post.createdAt).toLocaleDateString()
+                  : "Published recently"}
+              </p>
+
+              <p>👁 {post.views || 0} views</p>
+              <p>⏱ {getReadingTime(post.content)} min read</p>
+            </div>
           </div>
         </div>
 
@@ -114,7 +131,15 @@ export default async function BlogPage({ params }) {
             <p key={index}>{para}</p>
           ))}
         </div>
+
+        {/* SHARE BUTTONS */}
+        <ShareButtons
+          title={post.title}
+          url={`${baseUrl}/blog/${post.slug}`}
+        />
       </article>
+
+      <RelatedPosts category={post.category} slug={post.slug || post._id} />
 
       <section className="max-w-3xl mx-auto px-6 pb-12">
         <CommentSection postId={post._id} />

@@ -15,7 +15,7 @@ export default function Navbar() {
       </Link>
 
       {/* NAV LINKS */}
-      <div className="flex gap-5 items-center text-sm">
+      <div className="flex items-center gap-6 text-sm">
 
         <Link href="/" className="hover:text-gray-300">
           Home
@@ -31,6 +31,10 @@ export default function Navbar() {
 
             <Link href="/my-posts" className="hover:text-gray-300">
               My Posts
+            </Link>
+
+            <Link href="/bookmarks" className="hover:text-gray-300">
+              Saved
             </Link>
 
             {/* USER EMAIL */}

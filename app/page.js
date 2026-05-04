@@ -1,6 +1,6 @@
 import Link from "next/link";
 import SearchPosts from "@/components/SearchPosts";
-
+import TrendingPosts from "@/components/TrendingPosts";
 async function getPosts() {
   const res = await fetch("http://localhost:3000/api/posts", {
     cache: "no-store",
@@ -16,6 +16,7 @@ export default async function Home() {
 
   return (
     <main className="bg-black text-white">
+      <TrendingPosts />
       {/* PARALLAX HERO */}
       <section
         className="min-h-screen bg-fixed bg-cover bg-center flex items-center justify-center px-6 relative"

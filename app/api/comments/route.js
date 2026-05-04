@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import dbConnect from "@/lib/mongodb";
+import { connectDB } from "@/lib/mongodb";
 import Comment from "@/models/Comment";
 import User from "@/models/User";
 import { authOptions } from "@/lib/auth";
+import { rateLimit } from "@/lib/rateLimit";
 
 export async function GET(req) {
   try {
-    await dbConnect();
+    await connectDB();
 
     const { searchParams } = new URL(req.url);
     const postId = searchParams.get("postId");
@@ -37,7 +38,7 @@ export async function GET(req) {
 
 export async function POST(req) {
   try {
-    await dbConnect();
+    await connectDB();
 
     const session = await getServerSession(authOptions);
 
@@ -45,6 +46,17 @@ export async function POST(req) {
       return NextResponse.json(
         { error: "You must be logged in to comment" },
         { status: 401 }
+      );
+    }
+
+    const userEmail = session.user.email;
+
+    const limit = rateLimit(`comment:${userEmail}`, 5, 60 * 1000);
+
+    if (!limit.success) {
+      return NextResponse.json(
+        { error: "Too many comments. Please wait a minute." },
+        { status: 429 }
       );
     }
 
@@ -57,19 +69,19 @@ export async function POST(req) {
       );
     }
 
-    const userId = session.user.id || session.user._id;
+    const user = await User.findOne({ email: userEmail });
 
-    if (!userId) {
+    if (!user) {
       return NextResponse.json(
-        { error: "User ID missing from session" },
-        { status: 400 }
+        { error: "User not found" },
+        { status: 404 }
       );
     }
 
     const comment = await Comment.create({
       post: postId,
-      user: userId,
-      content,
+      user: user._id,
+      content: content.trim(),
     });
 
     const populatedComment = await Comment.findById(comment._id)

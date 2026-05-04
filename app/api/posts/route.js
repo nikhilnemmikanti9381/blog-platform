@@ -1,16 +1,31 @@
 import { connectDB } from "@/lib/mongodb";
 import Post from "@/models/Post";
 
-// GET all posts
-export async function GET() {
+// GET posts with pagination
+export async function GET(req) {
   try {
     await connectDB();
 
-    const posts = await Post.find().sort({
-      createdAt: -1,
-    });
+    const { searchParams } = new URL(req.url);
 
-    return Response.json(posts);
+    const page = parseInt(searchParams.get("page")) || 1;
+    const limit = parseInt(searchParams.get("limit")) || 9;
+
+    const skip = (page - 1) * limit;
+
+    const posts = await Post.find()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const totalPosts = await Post.countDocuments();
+
+    return Response.json({
+      posts,
+      currentPage: page,
+      totalPages: Math.ceil(totalPosts / limit),
+    });
 
   } catch (error) {
     return Response.json(
@@ -27,7 +42,6 @@ export async function POST(req) {
 
     const body = await req.json();
 
-    // basic validation
     if (!body.title || !body.content) {
       return Response.json(
         { error: "Title and content are required" },
